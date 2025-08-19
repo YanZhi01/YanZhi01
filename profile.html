@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的属性 - 武侠语C群</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', serif;
+        }
+        
+        body {
+            background: #f5f0e1 url('https://img.zcool.cn/community/01a1a55d15c8bba8012187f4b4a7a7.jpg@1280w_1l_2o_100sh.jpg') no-repeat center/cover;
+            min-height: 100vh;
+            padding: 20px;
+            color: #3e2723;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            border: 2px solid #8b4513;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #8b4513;
+            margin-bottom: 30px;
+            font-size: 2.2rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+        
+        .profile-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px dashed #8b4513;
+        }
+        
+        .avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 3px solid #d4af37;
+            object-fit: cover;
+            margin-right: 20px;
+        }
+        
+        .profile-info {
+            flex: 1;
+        }
+        
+        .player-name {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #5d4037;
+        }
+        
+        .player-meta {
+            color: #8b4513;
+            font-size: 1.1rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .stat-card {
+            background: rgba(139, 69, 19, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid #bcaaa4;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #5d4037;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #8b4513;
+        }
+        
+        .back-btn {
+            display: inline-block;
+            margin-top: 30px;
+            color: #8b4513;
+            text-decoration: none;
+            padding: 8px 15px;
+            border: 1px solid #8b4513;
+            border-radius: 4px;
+        }
+    </style>
+    <script src="//cdn.jsdelivr.net/npm/leancloud-storage@4.12.0/dist/av-min.js"></script>
+    <script src="data.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>我的属性</h1>
+        
+        <div class="profile-header">
+            <img id="playerAvatar" class="avatar" src="">
+            <div class="profile-info">
+                <div class="player-name" id="playerName"></div>
+                <div class="player-meta">
+                    <span id="playerSect"></span> · <span id="playerPosition"></span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">等级</div>
+                <div class="stat-value" id="playerLevel"></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">银两</div>
+                <div class="stat-value" id="playerMoney"></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">经验</div>
+                <div class="stat-value" id="playerExp"></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">年龄</div>
+                <div class="stat-value" id="playerAge"></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">战力</div>
+                <div class="stat-value" id="playerPower"></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">上次签到</div>
+                <div class="stat-value" id="lastSignDate"></div>
+            </div>
+        </div>
+        
+        <a href="index.html" class="back-btn">
+            <i class="fas fa-arrow-left"></i> 返回首页
+        </a>
+    </div>
+
+    <script src="data.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = WuxiaData.getCurrentUser();
+            if(!user) {
+                alert('请先登录！');
+                window.location.href = "enter.html";
+                return;
+            }
+            
+            // 填充玩家数据
+            document.getElementById('playerAvatar').src = user.avatar;
+            document.getElementById('playerName').textContent = user.name;
+            
+            const sectInfo = WuxiaData.sects[user.sect] || { name: '未知', color: '' };
+            document.getElementById('playerSect').textContent = sectInfo.name;
+            document.getElementById('playerPosition').textContent = user.position;
+            
+            document.getElementById('playerLevel').textContent = user.level + '品';
+            document.getElementById('playerMoney').textContent = user.money + '两';
+            document.getElementById('playerExp').textContent = user.exp + '/1000';
+            document.getElementById('playerAge').textContent = user.age + '岁';
+            document.getElementById('playerPower').textContent = WuxiaData.calculatePower(user);
+            document.getElementById('lastSignDate').textContent = user.lastSignDate || '从未签到';
+        });
+    </script>
+</body>
+</html>

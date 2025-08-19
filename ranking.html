@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>江湖排行榜 - 武侠语C群</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* 完全保持原有CSS不变 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', 'STKaiti', serif;
+        }
+        
+        body {
+            background: #f5f0e1 url('https://img.zcool.cn/community/01a1a55d15c8bba8012187f4b4a7a7.jpg@1280w_1l_2o_100sh.jpg') no-repeat center/cover;
+            min-height: 100vh;
+            padding: 20px;
+            color: #3e2723;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            background: rgba(255, 255, 255, 0.92);
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 3px solid #8b4513;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header-decoration {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 10px;
+            background: linear-gradient(90deg, #8b4513, #d4af37, #8b4513);
+            border-radius: 5px 5px 0 0;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 20px 0 30px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        h1 {
+            color: #8b4513;
+            font-size: 2.8rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            letter-spacing: 5px;
+            margin-bottom: 10px;
+            position: relative;
+            display: inline-block;
+        }
+        
+        h1:after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 3px;
+            background: linear-gradient(to right, transparent, #d4af37, transparent);
+        }
+        
+        .subtitle {
+            color: #5d4037;
+            font-size: 1.2rem;
+            margin-top: 15px;
+            font-style: italic;
+        }
+        
+        .tab-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .tab-btn {
+            background: linear-gradient(to bottom, #e8dfc8, #d9d0b8);
+            border: 2px solid #8b4513;
+            border-radius: 8px;
+            padding: 15px 10px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .tab-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+            background: linear-gradient(to bottom, #d9d0b8, #c9c0a8);
+        }
+        
+        .tab-btn.active {
+            background: linear-gradient(to bottom, #8b4513, #6d4c41);
+            color: white;
+            border-color: #5d4037;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .sect-selector {
+            display: none;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin: 20px 0;
+        }
+        
+        .sect-btn {
+            padding: 12px 8px;
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 0.95rem;
+            border: 1px solid #bcaaa4;
+            transition: all 0.2s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sect-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+        }
+        
+        .sect-btn.active {
+            border: 2px solid #8b4513;
+            font-weight: bold;
+            transform: translateY(-3px);
+        }
+        
+        .wudang { background: rgba(46, 125, 50, 0.15); border-color: #2e7d32; }
+        .yaowang { background: rgba(67, 160, 71, 0.15); border-color: #43a047; }
+        .chongsheng { background: rgba(253, 216, 53, 0.15); border-color: #fdd835; }
+        .xueao { background: rgba(198, 40, 40, 0.15); border-color: #c62828; }
+        .guangming { background: rgba(239, 108, 0, 0.15); border-color: #ef6c00; }
+        .wandu { background: rgba(106, 27, 154, 0.15); border-color: #6a1b9a; }
+        .emei { background: rgba(173, 20, 87, 0.15); border-color: #ad1457; }
+        .tianxing { background: rgba(21, 101, 192, 0.15); border-color: #1565c0; }
+        .changtianque { background: rgba(0, 150, 136, 0.15); border-color: #009688; }
+        
+        .ranking-header {
+            display: grid;
+            grid-template-columns: 80px 2fr 2fr 1fr;
+            gap: 15px;
+            padding: 18px 20px;
+            background: #8b4513;
+            color: white;
+            font-weight: bold;
+            border-radius: 8px 8px 0 0;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .ranking-list {
+            border: 2px solid #bcaaa4;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .ranking-item {
+            display: grid;
+            grid-template-columns: 80px 2fr 2fr 1fr;
+            gap: 15px;
+            padding: 18px 20px;
+            border-bottom: 1px solid #e0d6c3;
+            transition: all 0.3s;
+        }
+        
+        .ranking-item:nth-child(odd) {
+            background: rgba(139, 69, 19, 0.05);
+        }
+        
+        .ranking-item:hover {
+            background: rgba(212, 175, 55, 0.1);
+            transform: scale(1.01);
+        }
+        
+        .rank {
+            font-weight: bold;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            position: relative;
+        }
+        
+        .rank-1 { 
+            color: #d4af37; 
+            text-shadow: 0 0 5px rgba(212, 175, 55, 0.5);
+        }
+        .rank-2 { 
+            color: #c0c0c0; 
+            text-shadow: 0 0 5px rgba(192, 192, 192, 0.5);
+        }
+        .rank-3 { 
+            color: #cd7f32; 
+            text-shadow: 0 0 5px rgba(205, 127, 50, 0.5);
+        }
+        
+        .rank-badge {
+            position: absolute;
+            top: -10px;
+            right: -5px;
+            font-size: 1.2rem;
+            background: #8b4513;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        .sect-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .sect-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: white;
+        }
+        
+        .sect-wudang { background: #2e7d32; }
+        .sect-yaowang { background: #43a047; }
+        .sect-chongsheng { background: #fdd835; color: #5d4037; }
+        .sect-xueao { background: #c62828; }
+        .sect-guangming { background: #ef6c00; }
+        .sect-wandu { background: #6a1b9a; }
+        .sect-emei { background: #ad1457; }
+        .sect-tianxing { background: #1565c0; }
+        .sect-changtianque { background: #009688; }
+        
+        .player-details {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .player-name {
+            font-weight: bold;
+            color: #5d4037;
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+        
+        .player-position {
+            font-size: 0.9rem;
+            color: #8b4513;
+        }
+        
+        .player-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .player-sect {
+            font-weight: bold;
+            color: #5d4037;
+            margin-bottom: 5px;
+        }
+        
+        .player-level {
+            font-size: 0.9rem;
+            color: #7d5d47;
+        }
+        
+        .stat-value {
+            font-weight: bold;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+        }
+        
+        .progress-up {
+            color: #2e7d32;
+            font-weight: bold;
+        }
+        
+        .progress-down {
+            color: #c62828;
+        }
+        
+        .last-update {
+            text-align: right;
+            font-size: 0.9rem;
+            color: #5d4037;
+            margin-top: 20px;
+            font-style: italic;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: #5d4037;
+            font-size: 1.2rem;
+        }
+        
+        .loading i {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: #8b4513;
+            animation: spin 1.5s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .back-btn {
+            display: inline-block;
+            margin-top: 30px;
+            background: #8b4513;
+            color: white;
+            text-decoration: none;
+            padding: 10px 25px;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border: none;
+            cursor: pointer;
+        }
+        
+        .back-btn:hover {
+            background: #6d4c41;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+        }
+        
+        .back-btn i {
+            margin-right: 8px;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px dashed #8b4513;
+            color: #5d4037;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 900px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .tab-buttons {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .sect-selector {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .ranking-header, 
+            .ranking-item {
+                grid-template-columns: 60px 2fr 1fr;
+            }
+            
+            .hide-mobile {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .tab-buttons {
+                grid-template-columns: 1fr;
+            }
+            
+            .sect-selector {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .ranking-header, 
+            .ranking-item {
+                grid-template-columns: 50px 2fr;
+                gap: 10px;
+                padding: 12px 15px;
+            }
+            
+            .ranking-header div:nth-child(3),
+            .ranking-item > div:nth-child(3) {
+                display: none;
+            }
+        }
+    </style>
+    <script src="//cdn.jsdelivr.net/npm/leancloud-storage@4.12.0/dist/av-min.js"></script>
+    <script src="data.js"></script>
+</head>
+<body>
+    <!-- 完全保持原有HTML结构不变 -->
+    <div class="container">
+        <div class="header-decoration"></div>
+        
+        <div class="header">
+            <h1>江湖排行榜</h1>
+            <div class="subtitle">武林至尊，谁与争锋？江湖排名，尽在此榜</div>
+        </div>
+        
+        <div class="tab-buttons">
+            <div class="tab-btn active" data-tab="power">
+                <i class="fas fa-fist-raised"></i> 武林榜
+            </div>
+            <div class="tab-btn" data-tab="sect">
+                <i class="fas fa-torii-gate"></i> 门派榜
+            </div>
+            <div class="tab-btn" data-tab="progress">
+                <i class="fas fa-chart-line"></i> 晋升榜
+            </div>
+            <div class="tab-btn" data-tab="rich">
+                <i class="fas fa-coins"></i> 富豪榜
+            </div>
+        </div>
+        
+        <div class="sect-selector" id="sectSelector">
+            <!-- 动态生成 -->
+        </div>
+        
+        <div class="ranking-header">
+            <div>名次</div>
+            <div>侠客信息</div>
+            <div class="hide-mobile">门派信息</div>
+            <div>数值</div>
+        </div>
+        
+        <div class="ranking-list" id="rankingList">
+            <div class="loading">
+                <i class="fas fa-spinner"></i>
+                <p>加载江湖豪杰数据中...</p>
+            </div>
+        </div>
+        
+        <div class="last-update" id="lastUpdate">
+            最后更新：加载中...
+        </div>
+        
+        <div style="text-align: center;">
+            <a href="index.html" class="back-btn">
+                <i class="fas fa-arrow-left"></i> 返回首页
+            </a>
+        </div>
+        
+        <div class="footer">
+            <p>武侠语C群 · 江湖排行榜© 2025 | 武林至尊，宝刀屠龙，号令天下，莫敢不从</p>
+        </div>
+    </div>
+
+    <!-- LeanCloud SDK -->
+    <script src="//cdn.jsdelivr.net/npm/leancloud-storage@4.12.0/dist/av-min.js"></script>
+    <script src="data.js"></script>
+    
+    <script>
+        // 使用WuxiaData中的门派信息
+        const sects = WuxiaData.sects;
+        
+        // 当前榜单状态
+        let currentTab = 'power';
+        let currentSect = 'wudang';
+        
+        // 生成门派选择器（不显示长天阙）
+        function generateSectSelector() {
+            const selector = document.getElementById('sectSelector');
+            selector.innerHTML = '';
+            
+            Object.entries(sects).forEach(([key, sect]) => {
+                // 跳过"长天阙"
+                if (key === 'changtianque') return;
+                
+                const btn = document.createElement('div');
+                btn.className = `sect-btn ${key}`;
+                btn.dataset.sect = key;
+                btn.innerHTML = `<i class="fas fa-${sect.icon || 'user'}"></i> ${sect.name}`;
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.sect-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentSect = key;
+                    generateRanking();
+                });
+                selector.appendChild(btn);
+            });
+        }
+        
+        // 从LeanCloud获取实时数据并生成排行榜
+        async function generateRanking() {
+            const container = document.getElementById('rankingList');
+            container.innerHTML = '<div class="loading"><i class="fas fa-spinner"></i><p>加载中...</p></div>';
+            
+            try {
+                // 初始化LeanCloud查询
+                const AV = WuxiaData.init();
+                const Character = AV.Object.extend('Character');
+                const query = new AV.Query(Character);
+                
+                // 排除长天阙玩家
+                query.notEqualTo('sect', 'changtianque');
+                
+                // 根据不同榜单类型设置排序
+                if (currentTab === 'power') {
+                    query.descending('exp'); // 按经验值排序（战力基础）
+                } else if (currentTab === 'progress') {
+                    query.descending('progress');
+                } else if (currentTab === 'rich') {
+                    query.descending('money');
+                } else if (currentTab === 'sect') {
+                    query.equalTo('sect', currentSect);
+                    query.descending('exp');
+                }
+                
+                query.limit(100); // 限制获取数量
+                const results = await query.find();
+                
+                // 处理数据
+                let characters = results.map(char => {
+                    const charData = char.toJSON();
+                    return {
+                        ...charData,
+                        power: WuxiaData.calculatePower(charData), // 计算战力
+                        progress: charData.progress || 0,
+                        money: charData.money || 0
+                    };
+                });
+                
+                // 如果是战力榜，需要重新按战力排序（因为calculatePower可能包含随机因素）
+                if (currentTab === 'power') {
+                    characters.sort((a, b) => b.power - a.power);
+                }
+                
+                // 渲染排行榜
+                renderRanking(characters);
+                
+            } catch (error) {
+                console.error("加载排行榜失败:", error);
+                container.innerHTML = `
+                    <div class="error-message" style="padding: 20px; text-align: center;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>加载数据失败，请刷新重试</p>
+                    </div>`;
+            }
+        }
+        
+        // 渲染排行榜内容（保持原有UI结构）
+        function renderRanking(characters) {
+            const container = document.getElementById('rankingList');
+            container.innerHTML = '';
+            
+            if (characters.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" style="padding: 40px; text-align: center; color: #5d4037;">
+                        <i class="fas fa-exclamation-circle" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                        <h3>暂无数据</h3>
+                        <p>当前没有符合条件的江湖豪杰</p>
+                    </div>`;
+                return;
+            }
+            
+            characters.forEach((char, index) => {
+                const sectInfo = sects[char.sect] || { name: '未知', icon: 'question' };
+                const item = document.createElement('div');
+                item.className = 'ranking-item';
+                
+                // 数值显示
+                let valueDisplay = '';
+                if (currentTab === 'power') {
+                    valueDisplay = `<div class="stat-value">${char.power.toLocaleString()}战力</div>`;
+                } else if (currentTab === 'progress') {
+                    valueDisplay = `<div class="stat-value progress-up">+${char.progress}</div>`;
+                } else if (currentTab === 'rich') {
+                    valueDisplay = `<div class="stat-value">${char.money.toLocaleString()}两</div>`;
+                } else if (currentTab === 'sect') {
+                    valueDisplay = `<div class="stat-value">${char.power.toLocaleString()}战力</div>`;
+                }
+                
+                // 前三名徽章
+                let rankBadge = '';
+                if (index < 3) {
+                    rankBadge = `<div class="rank-badge">${index+1}</div>`;
+                }
+                
+                // 完全保持原有HTML结构
+                item.innerHTML = `
+                    <div class="rank ${index < 3 ? 'rank-' + (index + 1) : ''}">
+                        ${index + 1}
+                        ${rankBadge}
+                    </div>
+                    <div class="player-info">
+                        <div class="player-name">${char.name || '无名侠客'}</div>
+                        <div class="player-level">${char.level || '无'}品高手</div>
+                    </div>
+                    <div class="sect-info hide-mobile">
+                        <div class="sect-icon sect-${char.sect}">
+                            <i class="fas fa-${sectInfo.icon || 'user'}"></i>
+                        </div>
+                        <div class="player-details">
+                            <div class="player-sect">${sectInfo.name}</div>
+                            <div class="player-position">${char.position || '无职位'}</div>
+                        </div>
+                    </div>
+                    ${valueDisplay}
+                `;
+                
+                container.appendChild(item);
+            });
+            
+            // 更新最后刷新时间
+            document.getElementById('lastUpdate').textContent = 
+                `最后更新：${new Date().toLocaleString('zh-CN')}`;
+        }
+        
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化LeanCloud
+            WuxiaData.init();
+            
+            generateSectSelector();
+            generateRanking();
+            
+            // 绑定标签切换事件
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentTab = this.dataset.tab;
+                    
+                    // 显示/隐藏门派选择器
+                    const selector = document.getElementById('sectSelector');
+                    selector.style.display = currentTab === 'sect' ? 'grid' : 'none';
+                    
+                    // 默认选择第一个门派
+                    if (currentTab === 'sect') {
+                        const firstSectBtn = document.querySelector('.sect-btn');
+                        if (firstSectBtn) {
+                            firstSectBtn.classList.add('active');
+                            currentSect = firstSectBtn.dataset.sect;
+                        }
+                    }
+                    
+                    generateRanking();
+                });
+            });
+            
+            // 每30秒自动刷新
+            setInterval(generateRanking, 30000);
+        });
+    </script>
+</body>
+</html>

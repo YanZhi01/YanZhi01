@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>江湖管理 - 武侠语C群</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', serif;
+        }
+        
+        body {
+            background: #f5f0e1 url('https://img.zcool.cn/community/01a1a55d15c8bba8012187f4b4a7a7.jpg@1280w_1l_2o_100sh.jpg') no-repeat center/cover;
+            min-height: 100vh;
+            padding: 20px;
+            color: #3e2723;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            border: 2px solid #8b4513;
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 20px;
+            min-height: 85vh;
+        }
+        
+        h1 {
+            grid-column: 1 / -1;
+            text-align: center;
+            color: #8b4513;
+            margin-bottom: 20px;
+            font-size: 2.5rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+            position: relative;
+            padding-bottom: 15px;
+        }
+        
+        h1:after {
+            content: '';
+            display: block;
+            width: 300px;
+            height: 3px;
+            background: linear-gradient(to right, transparent, #d4af37, transparent);
+            margin: 10px auto 0;
+        }
+        
+        .admin-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border-right: 2px solid #d4af37;
+            padding-right: 10px;
+        }
+        
+        .admin-btn {
+            padding: 15px;
+            background: linear-gradient(to bottom, #e8dfc8, #d9d0b8);
+            border: 1px solid #8b4513;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            font-weight: bold;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .admin-btn:hover {
+            transform: translateX(5px);
+            background: linear-gradient(to bottom, #d9d0b8, #c9c0a8);
+        }
+        
+        .admin-btn.active {
+            background: linear-gradient(to bottom, #8b4513, #6d4c41);
+            color: white;
+        }
+        
+        .admin-content {
+            min-height: 600px;
+            position: relative;
+        }
+        
+        .admin-panel {
+            display: none;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .admin-panel.active {
+            display: flex;
+        }
+        
+        .admin-panel h2 {
+            color: #5d4037;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #d4af37;
+            margin-bottom: 15px;
+        }
+        
+        /* 通用表单样式 */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #5d4037;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #bcaaa4;
+            border-radius: 4px;
+            background: #fff8e1;
+            font-size: 1rem;
+        }
+        
+        button {
+            background: #8b4513;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s;
+            display: inline-block;
+        }
+        
+        button:hover {
+            background: #6d4c41;
+        }
+        
+        button:disabled {
+            background: #bcaaa4;
+            cursor: not-allowed;
+        }
+        
+        /* 角色列表样式 */
+        .search-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .search-bar input {
+            flex: 3;
+        }
+        
+        .search-bar select {
+            flex: 2;
+        }
+        
+        .character-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #e0d6c3;
+            border-radius: 5px;
+        }
+        
+        .character-card {
+            border: 1px solid #bcaaa4;
+            border-radius: 5px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.8);
+        }
+        
+        .character-card:hover {
+            background: rgba(139, 69, 19, 0.1);
+        }
+        
+        .character-card.selected {
+            border-color: #8b4513;
+            background: rgba(139, 69, 19, 0.1);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .character-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid #8b4513;
+            object-fit: cover;
+        }
+        
+        .character-info {
+            flex: 1;
+        }
+        
+        .character-name {
+            font-weight: bold;
+            color: #5d4037;
+        }
+        
+        .character-meta {
+            font-size: 0.85rem;
+            color: #8b4513;
+        }
+        
+        /* 门派颜色标识 */
+        .wudang { border-left: 5px solid #2e7d32; }
+        .yaowang { border-left: 5px solid #43a047; }
+        .chongsheng { border-left: 5px solid #fdd835; }
+        .xueao { border-left: 5px solid #c62828; }
+        .guangming { border-left: 5px solid #ef6c00; }
+        .wandu { border-left: 5px solid #6a1b9a; }
+        .emei { border-left: 5px solid #ad1457; }
+        .tianxing { border-left: 5px solid #1565c0; }
+        .changtianque { border-left: 5px solid #009688; }
+        
+        .back-btn {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            color: #8b4513;
+            text-decoration: none;
+            padding: 10px 20px;
+            border: 1px solid #8b4513;
+            border-radius: 4px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .back-btn:hover {
+            background: rgba(139, 69, 19, 0.1);
+        }
+        
+        .message {
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .success-message {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #a5d6a7;
+        }
+        
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ef9a9a;
+        }
+        
+        .info-message {
+            background: #e3f2fd;
+            color: #1565c0;
+            border: 1px solid #90caf9;
+        }
+        
+        /* 编辑表单 */
+        .edit-form {
+            background: rgba(139, 69, 19, 0.05);
+            border-radius: 8px;
+            padding: 25px;
+            border: 1px solid #d4af37;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        /* 传说表单 */
+        .legend-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+        
+        .legend-preview {
+            background: #fff9e6;
+            border: 1px dashed #8b4513;
+            border-radius: 5px;
+            padding: 20px;
+            min-height: 300px;
+        }
+        
+        .legend-preview h3 {
+            color: #8b4513;
+            border-bottom: 1px solid #d4af37;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .preview-content {
+            line-height: 1.6;
+        }
+        
+        /* 加载状态 */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #5d4037;
+        }
+        
+        .loading i {
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .admin-menu {
+                flex-direction: row;
+                flex-wrap: wrap;
+                border-right: none;
+                border-bottom: 2px solid #d4af37;
+                padding-right: 0;
+                padding-bottom: 15px;
+                margin-bottom: 15px;
+            }
+            
+            .legend-form {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .search-bar {
+                flex-direction: column;
+            }
+            
+            .character-list {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    <script src="//cdn.jsdelivr.net/npm/leancloud-storage@4.12.0/dist/av-min.js"></script>
+    <script src="data.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-crown"></i> 江湖管理系统</h1>
+        
+        <!-- 左侧菜单栏 -->
+        <div class="admin-menu">
+            <div class="admin-btn active" data-panel="add-admin">
+                <i class="fas fa-user-shield"></i> 添加管理员
+            </div>
+            <div class="admin-btn" data-panel="edit-player">
+                <i class="fas fa-user-edit"></i> 编辑玩家信息
+            </div>
+            <div class="admin-btn" data-panel="spread-legend">
+                <i class="fas fa-bullhorn"></i> 散布传说
+            </div>
+        </div>
+        
+        <!-- 右侧内容区 -->
+        <div class="admin-content">
+            <!-- 添加管理员面板 -->
+            <div id="add-admin" class="admin-panel active">
+                <h2><i class="fas fa-user-shield"></i> 添加管理员</h2>
+                
+                <div class="search-bar">
+                    <input type="text" id="adminSearch" placeholder="搜索玩家姓名">
+                    <select id="adminSectFilter">
+                        <option value="">全部门派</option>
+                        <option value="wudang">武当派</option>
+                        <option value="yaowang">药王谷</option>
+                        <option value="chongsheng">崇圣寺</option>
+                        <option value="xueao">血敖台</option>
+                        <option value="guangming">光明顶</option>
+                        <option value="wandu">万毒窟</option>
+                        <option value="emei">峨眉派</option>
+                        <option value="tianxing">天行道</option>
+                        <option value="changtianque">长天阙</option>
+                    </select>
+                </div>
+                
+                <div class="character-list" id="adminCandidateList">
+                    <div class="loading">
+                        <i class="fas fa-spinner"></i> 加载玩家列表...
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="adminLevel">管理员等级</label>
+                    <select id="adminLevel">
+                        <option value="1">初级管理员</option>
+                        <option value="2">中级管理员</option>
+                        <option value="3">高级管理员</option>
+                    </select>
+                </div>
+                
+                <button id="confirmAddAdmin">
+                    <i class="fas fa-user-plus"></i> 确认添加
+                </button>
+                <div id="adminMessage" class="message"></div>
+            </div>
+            
+            <!-- 编辑玩家信息面板 -->
+            <div id="edit-player" class="admin-panel">
+                <h2><i class="fas fa-user-edit"></i> 编辑玩家信息</h2>
+                
+                <div class="search-bar">
+                    <input type="text" id="playerSearch" placeholder="搜索玩家姓名">
+                    <select id="playerSectFilter">
+                        <option value="">全部门派</option>
+                        <option value="wudang">武当派</option>
+                        <option value="yaowang">药王谷</option>
+                        <option value="chongsheng">崇圣寺</option>
+                        <option value="xueao">血敖台</option>
+                        <option value="guangming">光明顶</option>
+                        <option value="wandu">万毒窟</option>
+                        <option value="emei">峨眉派</option>
+                        <option value="tianxing">天行道</option>
+                        <option value="changtianque">长天阙</option>
+                    </select>
+                </div>
+                
+                <div class="character-list" id="playerList">
+                    <div class="loading">
+                        <i class="fas fa-spinner"></i> 加载玩家列表...
+                    </div>
+                </div>
+                
+                <div id="playerEditForm" style="display: none;">
+                    <h3>编辑玩家信息</h3>
+                    <div class="edit-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="editName">姓名</label>
+                                <input type="text" id="editName">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="editSect">门派</label>
+                                <select id="editSect">
+                                    <option value="wudang">武当派</option>
+                                    <option value="yaowang">药王谷</option>
+                                    <option value="chongsheng">崇圣寺</option>
+                                    <option value="xueao">血敖台</option>
+                                    <option value="guangming">光明顶</option>
+                                    <option value="wandu">万毒窟</option>
+                                    <option value="emei">峨眉派</option>
+                                    <option value="tianxing">天行道</option>
+                                    <option value="changtianque">长天阙</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="editPosition">职位</label>
+                                <select id="editPosition">
+                                    <!-- 选项将通过JavaScript动态生成 -->
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="editAge">年龄</label>
+                                <input type="number" id="editAge" min="16" max="99">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="editMoney">银两</label>
+                                <input type="number" id="editMoney" min="0">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="editExp">经验</label>
+                                <input type="number" id="editExp" min="0">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editLevel">等级</label>
+                            <input type="number" id="editLevel" min="1" max="9">
+                            <small>注意：等级数值越小表示境界越高（1品最高）</small>
+                        </div>
+                        
+                        <button id="savePlayerChanges">
+                            <i class="fas fa-save"></i> 保存更改
+                        </button>
+                        <div id="playerEditMessage" class="message"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 散布传说面板 -->
+            <div id="spread-legend" class="admin-panel">
+                <h2><i class="fas fa-bullhorn"></i> 散布传说</h2>
+                
+                <div class="legend-form">
+                    <div>
+                        <div class="form-group">
+                            <label for="legendTitle">传说标题</label>
+                            <input type="text" id="legendTitle" placeholder="例如：'血敖台惊现上古神兵'">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="legendContent">传说内容</label>
+                            <textarea id="legendContent" rows="10" placeholder="详细描述这个传说..."></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="legendLevel">传说等级</label>
+                            <select id="legendLevel">
+                                <option value="1">江湖传闻</option>
+                                <option value="2">武林秘闻</option>
+                                <option value="3">上古传说</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="legendSect">关联门派</label>
+                            <select id="legendSect">
+                                <option value="">无特定门派</option>
+                                <option value="wudang">武当派</option>
+                                <option value="yaowang">药王谷</option>
+                                <option value="chongsheng">崇圣寺</option>
+                                <option value="xueao">血敖台</option>
+                                <option value="guangming">光明顶</option>
+                                <option value="wandu">万毒窟</option>
+                                <option value="emei">峨眉派</option>
+                                <option value="tianxing">天行道</option>
+                                <option value="changtianque">长天阙</option>
+                            </select>
+                        </div>
+                        
+                        <button id="publishLegend">
+                            <i class="fas fa-paper-plane"></i> 发布传说
+                        </button>
+                        <div id="legendMessage" class="message"></div>
+                    </div>
+                    
+                    <div class="legend-preview">
+                        <h3>传说预览</h3>
+                        <div id="legendPreviewTitle" style="font-weight: bold; font-size: 1.2rem; margin-bottom: 10px; color: #8b4513;"></div>
+                        <div id="legendPreviewContent" class="preview-content"></div>
+                        <div style="margin-top: 20px; font-style: italic; color: #5d4037;">
+                            <div id="legendPreviewSect"></div>
+                            <div>传说等级: <span id="legendPreviewLevel"></span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <a href="index.html" class="back-btn">
+                <i class="fas fa-arrow-left"></i> 返回首页
+            </a>
+        </div>
+    </div>
+
+    <!-- LeanCloud SDK -->
+    <script src="//cdn.jsdelivr.net/npm/leancloud-storage@4.12.0/dist/av-min.js"></script>
+    <script src="data.js"></script>
+    
+    <script>
+        // 门派职位数据
+        const sectPositions = {
+            wudang: [
+                "掌门", 
+                "金供奉·铁剑翁", "木供奉·松影客", "水供奉·流泉师太", "火供奉·烈阳子", "土供奉·沉山道人",
+                "三途行者·酒僧", "三途行者·绣剑娘", "三途行者·盲琴师",
+                "内门弟子", "护山武僧", "带发道童"
+            ],
+            yaowang: [
+                "谷主", "少谷主", 
+                "左长老", "右长老", 
+                "医师圣手", "记名弟子", 
+                "医师", "医师女", 
+                "学徒", "药童"
+            ],
+            chongsheng: [
+                "方丈",
+                "圣僧·空见", "圣僧·空闻", "圣僧·空智", "圣僧·空性",
+                "禅师·无色", "禅师·无相", "禅师·无欲",
+                "亲传弟子", "僧人"
+            ],
+            xueao: [
+                "掌门",
+                "执罪客·断尘", "执罪客·蛰云", "执罪客·霜月",
+                "捉风人·听澜", "捉风人·觅心", "捉风人·望林",
+                "育刀匠", "内门弟子", "刀童"
+            ],
+            guangming: [
+                "教主",
+                "左光明使", "右光明使",
+                "护教法王·紫衫", "护教法王·白眉", "护教法王·金毛", "护教法王·青翼",
+                "散人·铁冠", "散人·布袋", "散人·冷面", "散人·伶牙", "散人·刀客",
+                "锐金旗使", "巨木旗使", "洪水旗使", "烈火旗使", "厚土旗使",
+                "坛主", "教徒", "圣火童子"
+            ],
+            wandu: [
+                "毒仙",
+                "毒长老",
+                "毒使·刺影", "毒使·虫君", "毒使·药煞", "毒使·雾隐",
+                "炼毒侍", "使毒侍",
+                "窟丁"
+            ],
+            emei: [
+                "掌门",
+                "长老大德", "长老玄心", "长老静尘",
+                "剑堂堂主", "掌堂堂主", "药堂堂主", "刑堂堂主", "传功堂主",
+                "亲传弟子", "普通弟子"
+            ],
+            tianxing: [
+                "总舵主",
+                "左使·玄判", "右使·地罚",
+                "情报司主", "武备司主", "钱粮司主",
+                "青龙坛主", "白虎坛主", "朱雀坛主", "玄武坛主", "苍狼坛主", "灵蛇坛主",
+                "执事", "百夫长", "预备役"
+            ],
+            changtianque: [
+            "神秘人"
+            ]
+        };
+        
+        // 传说等级名称
+        const legendLevels = {
+            "1": "江湖传闻",
+            "2": "武林秘闻",
+            "3": "上古传说"
+        };
+        
+        // 当前选中的玩家
+        let selectedPlayer = null;
+        
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', async function() {
+            // 初始化LeanCloud
+            WuxiaData.init();
+            
+            // 菜单切换
+            document.querySelectorAll('.admin-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.admin-btn').forEach(b => b.classList.remove('active'));
+                    document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
+                    
+                    this.classList.add('active');
+                    const panelId = this.dataset.panel;
+                    document.getElementById(panelId).classList.add('active');
+                    
+                    // 根据面板加载数据
+                    if (panelId === 'add-admin') {
+                        loadAdminCandidates();
+                    } else if (panelId === 'edit-player') {
+                        loadPlayers();
+                    }
+                });
+            });
+            
+            // 添加管理员功能
+            document.getElementById('confirmAddAdmin').addEventListener('click', addAdmin);
+            
+            // 保存玩家更改
+            document.getElementById('savePlayerChanges').addEventListener('click', savePlayerChanges);
+            
+            // 散布传说功能
+            document.getElementById('publishLegend').addEventListener('click', publishLegend);
+            
+            // 传说预览
+            document.getElementById('legendTitle').addEventListener('input', updateLegendPreview);
+            document.getElementById('legendContent').addEventListener('input', updateLegendPreview);
+            document.getElementById('legendLevel').addEventListener('change', updateLegendPreview);
+            document.getElementById('legendSect').addEventListener('change', updateLegendPreview);
+            
+            // 初始加载数据
+            loadAdminCandidates();
+        });
+        
+        // 加载管理员候选人
+        async function loadAdminCandidates() {
+            const list = document.getElementById('adminCandidateList');
+            list.innerHTML = '<div class="loading"><i class="fas fa-spinner"></i> 加载玩家列表...</div>';
+            
+            try {
+                const allChars = await WuxiaData.getAllCharacters();
+                list.innerHTML = '';
+                
+                if (Object.keys(allChars).length === 0) {
+                    list.innerHTML = '<div class="empty-state">暂无玩家数据</div>';
+                    return;
+                }
+                
+                Object.entries(allChars).forEach(([phone, char]) => {
+                    const sectInfo = WuxiaData.sects[char.sect] || WuxiaData.sects.unknown;
+                    const card = document.createElement('div');
+                    card.className = `character-card ${char.sect}`;
+                    card.dataset.phone = phone;
+                    
+                    card.innerHTML = `
+                        <img src="${char.avatar}" class="character-avatar" 
+                             onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'45\' fill=\'%238b4513\'/><text x=\'50\' y=\'55\' font-family=\'Microsoft YaHei\' font-size=\'16\' fill=\'white\' text-anchor=\'middle\'>${char.name.charAt(0)}</text></svg>'">
+                        <div class="character-info">
+                            <div class="character-name">${char.name}</div>
+                            <div class="character-meta">${sectInfo.name} · ${char.position}</div>
+                        </div>
+                    `;
+                    
+                    card.addEventListener('click', function() {
+                        document.querySelectorAll('.character-card').forEach(c => c.classList.remove('selected'));
+                        this.classList.add('selected');
+                    });
+                    
+                    list.appendChild(card);
+                });
+                
+                // 搜索功能
+                document.getElementById('adminSearch').addEventListener('input', filterAdminCandidates);
+                document.getElementById('adminSectFilter').addEventListener('change', filterAdminCandidates);
+            } catch (error) {
+                console.error("加载候选人失败:", error);
+                list.innerHTML = '<div class="error-message">加载玩家列表失败</div>';
+            }
+        }
+        
+        // 筛选管理员候选人
+        function filterAdminCandidates() {
+            const nameQuery = document.getElementById('adminSearch').value.toLowerCase();
+            const sectQuery = document.getElementById('adminSectFilter').value;
+            
+            document.querySelectorAll('#adminCandidateList .character-card').forEach(card => {
+                const phone = card.dataset.phone;
+                const char = WuxiaData.getAllCharacters()[phone];
+                const nameMatch = char.name.toLowerCase().includes(nameQuery);
+                const sectMatch = !sectQuery || char.sect === sectQuery;
+                
+                card.style.display = nameMatch && sectMatch ? 'flex' : 'none';
+            });
+        }
+        
+        // 添加管理员
+        async function addAdmin() {
+            const selectedCard = document.querySelector('#adminCandidateList .character-card.selected');
+            const adminLevel = document.getElementById('adminLevel').value;
+            const messageElement = document.getElementById('adminMessage');
+            
+            if (!selectedCard) {
+                messageElement.textContent = '请先选择玩家';
+                messageElement.className = 'error-message';
+                return;
+            }
+            
+            const phone = selectedCard.dataset.phone;
+            const allChars = await WuxiaData.getAllCharacters();
+            const char = allChars[phone];
+            
+            try {
+                // 更新玩家数据
+                char.isAdmin = true;
+                char.adminLevel = adminLevel;
+                
+                // 保存到LeanCloud
+                const saveSuccess = await WuxiaData.saveCharacter(phone, char);
+                
+                if (saveSuccess) {
+                    messageElement.textContent = 
+                        `已添加 ${char.name} 为 ${getAdminLevelName(adminLevel)} 管理员`;
+                    messageElement.className = 'success-message';
+                    
+                    // 清空选择
+                    selectedCard.classList.remove('selected');
+                    
+                    // 更新列表显示
+                    selectedCard.querySelector('.character-info').innerHTML += 
+                        `<div class="character-meta" style="color:#d4af37; font-weight:bold;">
+                            <i class="fas fa-crown"></i> 管理员
+                        </div>`;
+                } else {
+                    throw new Error("保存管理员失败");
+                }
+            } catch (error) {
+                console.error("添加管理员失败:", error);
+                messageElement.textContent = '添加管理员失败，请重试';
+                messageElement.className = 'error-message';
+            }
+        }
+        
+        // 获取管理员等级名称
+        function getAdminLevelName(level) {
+            switch(level) {
+                case '1': return '初级';
+                case '2': return '中级';
+                case '3': return '高级';
+                default: return '';
+            }
+        }
+        
+        // 加载玩家列表
+        async function loadPlayers() {
+            const list = document.getElementById('playerList');
+            list.innerHTML = '<div class="loading"><i class="fas fa-spinner"></i> 加载玩家列表...</div>';
+            
+            try {
+                const allChars = await WuxiaData.getAllCharacters();
+                list.innerHTML = '';
+                
+                if (Object.keys(allChars).length === 0) {
+                    list.innerHTML = '<div class="empty-state">暂无玩家数据</div>';
+                    return;
+                }
+                
+                Object.entries(allChars).forEach(([phone, char]) => {
+                    const sectInfo = WuxiaData.sects[char.sect] || WuxiaData.sects.unknown;
+                    const card = document.createElement('div');
+                    card.className = `character-card ${char.sect}`;
+                    card.dataset.phone = phone;
+                    
+                    card.innerHTML = `
+                        <img src="${char.avatar}" class="character-avatar" 
+                             onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'45\' fill=\'%238b4513\'/><text x=\'50\' y=\'55\' font-family=\'Microsoft YaHei\' font-size=\'16\' fill=\'white\' text-anchor=\'middle\'>${char.name.charAt(0)}</text></svg>'">
+                        <div class="character-info">
+                            <div class="character-name">${char.name}</div>
+                            <div class="character-meta">${sectInfo.name} · ${char.position}</div>
+                            ${char.isAdmin ? `<div class="character-meta" style="color:#d4af37; font-weight:bold;">
+                                <i class="fas fa-crown"></i> 管理员
+                            </div>` : ''}
+                        </div>
+                    `;
+                    
+                    card.addEventListener('click', function() {
+                        document.querySelectorAll('.character-card').forEach(c => c.classList.remove('selected'));
+                        this.classList.add('selected');
+                        showPlayerEditForm(phone, char);
+                    });
+                    
+                    list.appendChild(card);
+                });
+                
+                // 搜索功能
+                document.getElementById('playerSearch').addEventListener('input', filterPlayers);
+                document.getElementById('playerSectFilter').addEventListener('change', filterPlayers);
+            } catch (error) {
+                console.error("加载玩家列表失败:", error);
+                list.innerHTML = '<div class="error-message">加载玩家列表失败</div>';
+            }
+        }
+        
+        // 筛选玩家
+        function filterPlayers() {
+            const nameQuery = document.getElementById('playerSearch').value.toLowerCase();
+            const sectQuery = document.getElementById('playerSectFilter').value;
+            
+            document.querySelectorAll('#playerList .character-card').forEach(card => {
+                const phone = card.dataset.phone;
+                const char = WuxiaData.getAllCharacters()[phone];
+                const nameMatch = char.name.toLowerCase().includes(nameQuery);
+                const sectMatch = !sectQuery || char.sect === sectQuery;
+                
+                card.style.display = nameMatch && sectMatch ? 'flex' : 'none';
+            });
+        }
+        
+        // 显示玩家编辑表单
+        function showPlayerEditForm(phone, char) {
+            document.getElementById('playerEditForm').style.display = 'block';
+            selectedPlayer = { phone, ...char };
+            
+            // 填充表单
+            document.getElementById('editName').value = char.name;
+            document.getElementById('editSect').value = char.sect;
+            document.getElementById('editAge').value = char.age;
+            document.getElementById('editMoney').value = char.money;
+            document.getElementById('editExp').value = char.exp;
+            document.getElementById('editLevel').value = char.level;
+            
+            // 更新职位选项
+            updatePositionOptions(char.sect, char.position);
+            
+            // 门派变化时更新职位选项
+            document.getElementById('editSect').addEventListener('change', function() {
+                updatePositionOptions(this.value);
+            });
+        }
+        
+        // 更新职位选项
+        function updatePositionOptions(sect, currentPosition = '') {
+            const positionSelect = document.getElementById('editPosition');
+            positionSelect.innerHTML = '';
+            
+            const positions = sectPositions[sect] || [];
+            positions.forEach(pos => {
+                const option = document.createElement('option');
+                option.value = pos;
+                option.textContent = pos;
+                if (pos === currentPosition) {
+                    option.selected = true;
+                }
+                positionSelect.appendChild(option);
+            });
+        }
+        
+        // 保存玩家更改
+        async function savePlayerChanges() {
+            if (!selectedPlayer) {
+                document.getElementById('playerEditMessage').textContent = '请先选择玩家';
+                document.getElementById('playerEditMessage').className = 'error-message';
+                return;
+            }
+            
+            const phone = selectedPlayer.phone;
+            const allChars = await WuxiaData.getAllCharacters();
+            const char = allChars[phone];
+            const messageElement = document.getElementById('playerEditMessage');
+            
+            // 更新角色数据
+            char.name = document.getElementById('editName').value;
+            char.sect = document.getElementById('editSect').value;
+            char.position = document.getElementById('editPosition').value;
+            char.age = parseInt(document.getElementById('editAge').value);
+            char.money = parseInt(document.getElementById('editMoney').value);
+            char.exp = parseInt(document.getElementById('editExp').value);
+            char.level = parseInt(document.getElementById('editLevel').value);
+            
+            try {
+                // 保存更改
+                const saveSuccess = await WuxiaData.saveCharacter(phone, char);
+                
+                if (saveSuccess) {
+                    // 更新显示
+                    const selectedCard = document.querySelector(`#playerList .character-card[data-phone="${phone}"]`);
+                    if (selectedCard) {
+                        selectedCard.querySelector('.character-name').textContent = char.name;
+                        const sectInfo = WuxiaData.sects[char.sect] || { name: '未知' };
+                        selectedCard.querySelector('.character-meta').textContent = 
+                            `${sectInfo.name} · ${char.position}`;
+                    }
+                    
+                    messageElement.textContent = '玩家信息已更新';
+                    messageElement.className = 'success-message';
+                } else {
+                    throw new Error("保存玩家信息失败");
+                }
+            } catch (error) {
+                console.error("保存玩家信息失败:", error);
+                messageElement.textContent = '保存失败，请重试';
+                messageElement.className = 'error-message';
+            }
+        }
+        
+        // 散布传说
+        async function publishLegend() {
+            const title = document.getElementById('legendTitle').value.trim();
+            const content = document.getElementById('legendContent').value.trim();
+            const level = document.getElementById('legendLevel').value;
+            const sect = document.getElementById('legendSect').value;
+            const messageElement = document.getElementById('legendMessage');
+            
+            if (!title || !content) {
+                messageElement.textContent = '请填写传说标题和内容';
+                messageElement.className = 'error-message';
+                return;
+            }
+            
+            try {
+                // 获取当前用户（管理员）
+                const currentUser = await WuxiaData.getCurrentUser();
+                if (!currentUser) {
+                    messageElement.textContent = '请先登录管理员账号';
+                    messageElement.className = 'error-message';
+                    return;
+                }
+                
+                // 创建传说对象
+                const legend = {
+                    title,
+                    content,
+                    level: parseInt(level),
+                    sect,
+                    author: currentUser.name,
+                    date: new Date().toISOString()
+                };
+                
+                // 保存到LeanCloud
+                const saveSuccess = await WuxiaData.createRumor(legend);
+                
+                if (saveSuccess) {
+                    messageElement.textContent = 
+                        `传说"${title}"已发布${sect ? `(关联门派: ${WuxiaData.sects[sect].name})` : ''}`;
+                    messageElement.className = 'success-message';
+                    
+                    // 清空表单
+                    document.getElementById('legendTitle').value = '';
+                    document.getElementById('legendContent').value = '';
+                    document.getElementById('legendSect').value = '';
+                    
+                    // 更新预览
+                    updateLegendPreview();
+                } else {
+                    throw new Error("发布传说失败");
+                }
+            } catch (error) {
+                console.error("发布传说失败:", error);
+                messageElement.textContent = '发布失败，请重试';
+                messageElement.className = 'error-message';
+            }
+        }
+        
+        // 更新传说预览
+        function updateLegendPreview() {
+            const title = document.getElementById('legendTitle').value.trim() || "新传说标题";
+            const content = document.getElementById('legendContent').value.trim() || "在此输入传说内容...";
+            const level = document.getElementById('legendLevel').value;
+            const sect = document.getElementById('legendSect').value;
+            
+            document.getElementById('legendPreviewTitle').textContent = title;
+            document.getElementById('legendPreviewContent').textContent = content;
+            document.getElementById('legendPreviewLevel').textContent = legendLevels[level];
+            
+            if (sect) {
+                document.getElementById('legendPreviewSect').textContent = 
+                    `关联门派: ${WuxiaData.sects[sect].name}`;
+            } else {
+                document.getElementById('legendPreviewSect').textContent = "";
+            }
+        }
+    </script>
+</body>
+</html>

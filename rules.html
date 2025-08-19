@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>江湖规矩 - 武侠语C群</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', serif;
+        }
+        
+        body {
+            background: #f5f0e1 url('https://img.zcool.cn/community/01a1a55d15c8bba8012187f4b4a7a7.jpg@1280w_1l_2o_100sh.jpg') no-repeat center/cover;
+            min-height: 100vh;
+            padding: 20px;
+            color: #3e2723;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            border: 2px solid #8b4513;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #8b4513;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+        
+        h1:after {
+            content: '';
+            display: block;
+            width: 200px;
+            height: 3px;
+            background: linear-gradient(to right, transparent, #8b4513, transparent);
+            margin: 10px auto 0;
+        }
+        
+        .sect-tabs {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .sect-tab {
+            background: linear-gradient(to bottom, #e8dfc8, #d9d0b8);
+            border: 1px solid #8b4513;
+            border-radius: 5px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        
+        .sect-tab:hover {
+            background: linear-gradient(to bottom, #d9d0b8, #c9c0a8);
+            transform: translateY(-3px);
+        }
+        
+        .sect-tab.active {
+            background: linear-gradient(to bottom, #8b4513, #6d4c41);
+            color: white;
+            border-color: #5d4037;
+        }
+        
+        /* 门派特色颜色 */
+        .sect-tab[data-sect="wudang"] { border-left: 4px solid #2e7d32; }
+        .sect-tab[data-sect="yaowang"] { border-left: 4px solid #43a047; }
+        .sect-tab[data-sect="chongsheng"] { border-left: 4px solid #fdd835; }
+        .sect-tab[data-sect="xueao"] { border-left: 4px solid #c62828; }
+        .sect-tab[data-sect="guangming"] { border-left: 4px solid #ef6c00; }
+        .sect-tab[data-sect="wandu"] { border-left: 4px solid #6a1b9a; }
+        .sect-tab[data-sect="emei"] { border-left: 4px solid #ad1457; }
+        .sect-tab[data-sect="tianxing"] { border-left: 4px solid #1565c0; }
+        
+        .rules-content {
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path d="M0,0 L100,0 L100,100 L0,100 Z" fill="none" stroke="%238b4513" stroke-width="0.5" stroke-dasharray="5,5"/></svg>');
+            padding: 30px;
+            border-radius: 5px;
+            border: 1px solid #bcaaa4;
+            min-height: 300px;
+        }
+        
+        .rules-section {
+            display: none;
+        }
+        
+        .rules-section.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        h2 {
+            color: #5d4037;
+            border-left: 4px solid #d4af37;
+            padding-left: 10px;
+            margin: 20px 0 15px;
+        }
+        
+        ol.rules-list {
+            padding-left: 20px;
+        }
+        
+        ol.rules-list li {
+            margin-bottom: 10px;
+            padding-left: 5px;
+        }
+        
+        .sect-motto {
+            font-style: italic;
+            color: #8b4513;
+            text-align: right;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        
+        .back-btn {
+            display: inline-block;
+            margin-top: 20px;
+            color: #8b4513;
+            text-decoration: none;
+            font-size: 0.9rem;
+            padding: 8px 15px;
+            border: 1px solid #8b4513;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+        
+        .back-btn:hover {
+            background: rgba(139, 69, 19, 0.1);
+        }
+        
+        .back-btn i {
+            margin-right: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .sect-tabs {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+    <script src="//cdn.jsdelivr.net/npm/leancloud-storage@4.12.0/dist/av-min.js"></script>
+    <script src="data.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>江湖规矩</h1>
+        
+        <div class="sect-tabs">
+            <div class="sect-tab active" data-sect="general">群规总纲</div>
+            <div class="sect-tab" data-sect="wudang">武当派</div>
+            <div class="sect-tab" data-sect="yaowang">药王谷</div>
+            <div class="sect-tab" data-sect="chongsheng">崇圣寺</div>
+            <div class="sect-tab" data-sect="xueao">血敖台</div>
+            <div class="sect-tab" data-sect="guangming">光明顶</div>
+            <div class="sect-tab" data-sect="wandu">万毒窟</div>
+            <div class="sect-tab" data-sect="emei">峨眉派</div>
+            <div class="sect-tab" data-sect="tianxing">天行道</div>
+        </div>
+        
+        <div class="rules-content">
+            <!-- 群规总纲 -->
+            <div id="general" class="rules-section active">
+                <h2>江湖总规</h2>
+                <ol class="rules-list">
+                    <li>一、群员保持和谐相处，不搞小团体，不得吵架斗嘴伤害感情，有问题小窗解决，一次警告，两次飞机票。</li>
+                    <li>二、管理组公平公正，只维护群内气氛，任何矛盾私下解决，群内莫要出现争端，处理好事情，收拾好情绪，欢迎回来，请理智听劝，管理出言制止不听，且劝不了可以自退或帮飞</li>
+                    <li>三、不得谈论国家，政治相关内容</li>
+                    <li>四、遵循语擦基本原则，上皮贴皮，不得强制他人约戏。</li>
+                    <li>五、对戏请上皮，设定请稳，皮气请正，莫拿没上皮没认真等言作托词，默认崩皮即扒。固设或特定皮，不要只谈情爱，请联设及官配设定对戏，下皮带套下皮带套。</li>
+                    <li>六、本群时间流速为10天一年，年龄会自动增长。</li>
+                    <li>七、涉三适度</li>
+                    <li>八、各种其他问题导致群员多人不适，例如图太丑，引起不适则禁图并且不许下皮，管理最多提醒三次即飞机票。</li>
+                    <li>九、成员如有求职及问题请公屏。避免个别管理忙碌时不能及时正确反馈，方便处理。不要因小窗管理或群主，错失解决。</li>
+                    <li>十、换皮一月内第一次免费，后每次300死皮戏</li>
+                </ol>
+            </div>
+            
+            <!-- 武当派 -->
+            <div id="wudang" class="rules-section">
+                <h2>武当派门规</h2>
+                <ol class="rules-list">
+                    <li>每日辰时需晨练太极（现实时间每晚8-9点活跃）</li>
+                    <li>禁止食用荤腥，违者罚抄《道德经》三遍</li>
+                    <li>弟子需按辈分称呼：清风→明月→紫阳→玄真→太虚</li>
+                    <li>门派贡献达5000可学习《太极拳经》</li>
+                    <li>需定期参加"真武大典"（每月15日线上活动）</li>
+                    <li>叛派者需承受"三清锁脉"惩罚（3日内不得加入新门派）</li>
+                    <li>下山游历需至少两名同门结伴</li>
+                </ol>
+                <p class="sect-motto">"以柔克刚，以静制动"</p>
+            </div>
+            
+            <!-- 药王谷 -->
+            <div id="yaowang" class="rules-section">
+                <h2>药王谷戒律</h2>
+                <ol class="rules-list">
+                    <li>每月需上交10株珍稀草药（可在群内文字描述采集过程）</li>
+                    <li>禁止用毒术害人（对敌需提前申请）</li>
+                    <li>救治同门收费五折，救治平民收费三折</li>
+                    <li>偷学《神农百草经》者，永久逐出药王谷</li>
+                    <li>每年谷主寿辰需献上独创药方</li>
+                    <li>擅闯"百毒园"者，需试药三日作为惩罚</li>
+                    <li>弟子分为：采药童→配药师→解毒使→圣手→药王</li>
+                </ol>
+                <p class="sect-motto">"医者仁心，毒者慎用"</p>
+            </div>
+            
+            <!-- 崇圣寺 -->
+            <div id="chongsheng" class="rules-section">
+                <h2>崇圣寺清规</h2>
+                <ol class="rules-list">
+                    <li>每日需诵经一次（发送佛经段落）</li>
+                    <li>禁止婚嫁，违者废除武功</li>
+                    <li>"伏魔殿"开放时间：每月初一、十五</li>
+                    <li>还俗需方丈批准并完成"十八铜人阵"挑战</li>
+                    <li>犯戒者需在"思过崖"面壁（禁言1-3天）</li>
+                    <li>武学进阶路线：沙弥→武僧→罗汉→尊者→圣僧</li>
+                    <li>每月需超度3名亡魂（参与剧情中的死亡事件）</li>
+                </ol>
+                <p class="sect-motto">"慈悲为怀，降魔卫道"</p>
+            </div>
+            
+            <!-- 血敖台 -->
+            <div id="xueao" class="rules-section">
+                <h2>血敖台铁律</h2>
+                <ol class="rules-list">
+                    <li>新人需献上"投名状"（完成指定剧情任务）</li>
+                    <li>每月需参加至少一次"血祭"（群内比武活动）</li>
+                    <li>背叛者将上"追杀令"，全江湖共诛之</li>
+                    <li>职位晋升需击败当前职位的所有成员</li>
+                    <li>禁止对同门下毒，违者断一指（降级惩罚）</li>
+                    <li>每日酉时需到"血池"练功（文字描述修炼过程）</li>
+                    <li>等级划分：血奴→血卫→血煞→血尊→血魔</li>
+                </ol>
+                <p class="sect-motto">"血债血偿，弱肉强食"</p>
+            </div>
+            
+            <!-- 光明顶 -->
+            <div id="guangming" class="rules-section">
+                <h2>光明顶教规</h2>
+                <ol class="rules-list">
+                    <li>每日需朝拜圣火（发送特定表情符号）</li>
+                    <li>教众需佩戴火焰纹饰（头像需有红色元素）</li>
+                    <li>叛教者将受"烈焰焚身"之刑（7日不得参与任何活动）</li>
+                    <li>每月需完成"圣火令"任务（指定剧情线）</li>
+                    <li>职位晋升需通过"光明试炼"（问答挑战）</li>
+                    <li>禁止私藏武功秘籍，所有武学需共享</li>
+                    <li>等级：教徒→执事→护法→法王→教主</li>
+                </ol>
+                <p class="sect-motto">"焚我残躯，熊熊圣火"</p>
+            </div>
+            
+            <!-- 万毒窟 -->
+            <div id="wandu" class="rules-section">
+                <h2>万毒窟禁忌</h2>
+                <ol class="rules-list">
+                    <li>新人需服下"噬心丹"（完成3个月观察期）</li>
+                    <li>每月需上缴一种新研制的毒药配方</li>
+                    <li>禁止对本门弟子用毒，违者尝遍十大酷刑</li>
+                    <li>外出必须佩戴避毒香囊（发言需带毒物emoji）</li>
+                    <li>职位晋升需通过"万毒噬心"考验（答题挑战）</li>
+                    <li>每年"毒王大会"必须参加（年度比武活动）</li>
+                    <li>等级：毒虫→毒师→毒煞→毒尊→毒王</li>
+                </ol>
+                <p class="sect-motto">"无毒不丈夫，量小非君子"</p>
+            </div>
+            
+            <!-- 峨眉派 -->
+            <div id="emei" class="rules-section">
+                <h2>峨眉派戒律</h2>
+                <ol class="rules-list">
+                    <li>女弟子每月需指导新入门师妹</li>
+                    <li>禁止与异性单独相处（剧情需报备）</li>
+                    <li>每日需练习"玉女剑法"（描述修炼过程）</li>
+                    <li>叛派者将上"诛心榜"，永世不得回归</li>
+                    <li>职位晋升需通过"剑阵考验"（问答挑战）</li>
+                    <li>每月初一需斋戒沐浴（发言需用特定前缀）</li>
+                    <li>等级：外门→内门→真传→长老→掌门</li>
+                </ol>
+                <p class="sect-motto">"剑心通明，玉洁冰清"</p>
+            </div>
+            
+            <!-- 天行道 -->
+            <div id="tianxing" class="rules-section">
+                <h2>天行道法则</h2>
+                <ol class="rules-list">
+                    <li>每月需完成3件"替天行道"任务（剧情事件）</li>
+                    <li>禁止滥杀无辜，违者废除武功</li>
+                    <li>成员间需以"天X"为代号（如天剑、天刀等）</li>
+                    <li>任务奖励按"天道点数"分配</li>
+                    <li>晋升需通过"天罚试炼"（剧情任务挑战）</li>
+                    <li>每日需研读《天道经》（分享读书笔记）</li>
+                    <li>等级：行者→执剑→天将→天尊→道主</li>
+                </ol>
+                <p class="sect-motto">"替天行道，赏善罚恶"</p>
+            </div>
+        </div>
+        
+        <a href="index.html" class="back-btn">
+            <i class="fas fa-arrow-left"></i> 返回首页
+        </a>
+    </div>
+
+    <script>
+        // 门派切换功能
+        document.querySelectorAll('.sect-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                // 移除所有active类
+                document.querySelectorAll('.sect-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.rules-section').forEach(s => s.classList.remove('active'));
+                
+                // 添加active类
+                this.classList.add('active');
+                const sectId = this.getAttribute('data-sect');
+                document.getElementById(sectId).classList.add('active');
+            });
+        });
+
+        // 自动记忆上次查看的门派
+        document.addEventListener('DOMContentLoaded', function() {
+            const lastSect = localStorage.getItem('lastViewedSect') || 'general';
+            document.querySelector(`.sect-tab[data-sect="${lastSect}"]`).click();
+        });
+
+        document.querySelectorAll('.sect-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                localStorage.setItem('lastViewedSect', this.getAttribute('data-sect'));
+            });
+        });
+    </script>
+</body>
+
+</html>

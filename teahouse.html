@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>江湖茶馆 - 武侠语C群</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', serif;
+        }
+        
+        body {
+            background: #f5f0e1 url('https://img.zcool.cn/community/01a1a55d15c8bba8012187f4b4a7a7.jpg@1280w_1l_2o_100sh.jpg') no-repeat center/cover;
+            min-height: 100vh;
+            padding: 20px;
+            color: #3e2723;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            border: 2px solid #8b4513;
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 20px;
+        }
+        
+        h1 {
+            grid-column: 1 / -1;
+            text-align: center;
+            color: #8b4513;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+        
+        .rumor-tabs {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .rumor-tab {
+            padding: 15px;
+            background: linear-gradient(to bottom, #e8dfc8, #d9d0b8);
+            border: 1px solid #8b4513;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .rumor-tab:hover {
+            transform: translateX(5px);
+        }
+        
+        .rumor-tab.active {
+            background: linear-gradient(to bottom, #8b4513, #6d4c41);
+            color: white;
+        }
+        
+        .rumor-content {
+            min-height: 500px;
+            position: relative;
+        }
+        
+        .rumor-list {
+            display: none;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .rumor-list.active {
+            display: flex;
+        }
+        
+        .rumor-item {
+            background: #fff9e6;
+            border: 1px solid #d4af37;
+            border-radius: 5px;
+            padding: 15px;
+            position: relative;
+        }
+        
+        .rumor-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            border-bottom: 1px dashed #8b4513;
+            padding-bottom: 5px;
+        }
+        
+        .rumor-title {
+            font-weight: bold;
+            color: #8b4513;
+        }
+        
+        .rumor-meta {
+            font-size: 0.8rem;
+            color: #5d4037;
+        }
+        
+        .rumor-level-1 { border-left: 4px solid #43a047; } /* 传闻 */
+        .rumor-level-2 { border-left: 4px solid #d4af37; } /* 秘闻 */
+        .rumor-level-3 { border-left: 4px solid #c62828; } /* 传说 */
+        
+        .rumor-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: #5d4037;
+        }
+        
+        .spread-btn {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: #8b4513;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px 0 5px 0;
+            cursor: pointer;
+        }
+        
+        .empty-message {
+            text-align: center;
+            padding: 40px;
+            color: #5d4037;
+            font-style: italic;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #5d4037;
+        }
+        
+        .loading i {
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #8b4513;
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.1rem;
+        }
+        
+        .modal-title {
+            color: #8b4513;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.5rem;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #d4af37;
+        }
+        
+        .form-group {
+            margin: 15px 0;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #5d4037;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #bcaaa4;
+            border-radius: 4px;
+            background: #fff8e1;
+            font-family: inherit;
+        }
+        
+        .form-group textarea {
+            min-height: 150px;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .modal-btn {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .modal-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .cancel-btn {
+            background: #bcaaa4;
+            color: #3e2723;
+        }
+        
+        .confirm-btn {
+            background: #8b4513;
+            color: white;
+        }
+        
+        .back-btn {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            color: #8b4513;
+            text-decoration: none;
+            padding: 8px 15px;
+            border: 1px solid #8b4513;
+            border-radius: 4px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .rumor-tabs {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+    <script src="//cdn.jsdelivr.net/npm/leancloud-storage@4.12.0/dist/av-min.js"></script>
+    <script src="data.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>江湖茶馆</h1>
+        
+        <!-- 左侧标签栏 -->
+        <div class="rumor-tabs">
+            <div class="rumor-tab active" data-level="1">江湖传闻</div>
+            <div class="rumor-tab" data-level="2">武林秘闻</div>
+            <div class="rumor-tab" data-level="3">上古传说</div>
+        </div>
+        
+        <!-- 右侧内容区 -->
+        <div class="rumor-content">
+            <!-- 传闻列表 -->
+            <div class="rumor-list active" data-level="1" id="rumorsLevel1">
+                <div class="loading">
+                    <i class="fas fa-spinner"></i> 加载中...
+                </div>
+            </div>
+            
+            <!-- 秘闻列表 -->
+            <div class="rumor-list" data-level="2" id="rumorsLevel2">
+                <div class="loading">
+                    <i class="fas fa-spinner"></i> 加载中...
+                </div>
+            </div>
+            
+            <!-- 传说列表 -->
+            <div class="rumor-list" data-level="3" id="rumorsLevel3">
+                <div class="loading">
+                    <i class="fas fa-spinner"></i> 加载中...
+                </div>
+            </div>
+            
+            <!-- 散布按钮 -->
+            <button class="spread-btn" id="spreadBtn">
+                <i class="fas fa-bullhorn"></i> 散布消息
+            </button>
+        </div>
+        
+        <a href="index.html" class="back-btn">
+            <i class="fas fa-arrow-left"></i> 返回
+        </a>
+    </div>
+    
+    <!-- 散布消息模态框 -->
+    <div class="modal" id="spreadModal">
+        <div class="modal-content">
+            <button class="modal-close" id="closeModal">&times;</button>
+            <h3 class="modal-title">散布江湖消息</h3>
+            
+            <form id="rumorForm">
+                <div class="form-group">
+                    <label for="rumorTitle">消息标题</label>
+                    <input type="text" id="rumorTitle" placeholder="请输入消息标题" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="rumorLevel">消息等级</label>
+                    <select id="rumorLevel" required>
+                        <option value="1">江湖传闻</option>
+                        <option value="2">武林秘闻</option>
+                        <option value="3">上古传说</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="rumorSect">关联门派（可选）</label>
+                    <select id="rumorSect">
+                        <option value="">无关联门派</option>
+                        <option value="wudang">武当派</option>
+                        <option value="yaowang">药王谷</option>
+                        <option value="chongsheng">崇圣寺</option>
+                        <option value="xueao">血敖台</option>
+                        <option value="guangming">光明顶</option>
+                        <option value="wandu">万毒窟</option>
+                        <option value="emei">峨眉派</option>
+                        <option value="tianxing">天行道</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="rumorContent">消息内容</label>
+                    <textarea id="rumorContent" placeholder="详细描述这个消息..." required></textarea>
+                </div>
+                
+                <div class="modal-buttons">
+                    <button type="button" class="modal-btn cancel-btn" id="cancelRumor">取消</button>
+                    <button type="submit" class="modal-btn confirm-btn">发布消息</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- LeanCloud SDK -->
+    <script src="//cdn.jsdelivr.net/npm/leancloud-storage@4.12.0/dist/av-min.js"></script>
+    <script src="data.js"></script>
+    
+    <script>
+        // 当前用户和消息等级
+        let currentUser = null;
+        let currentLevel = 1;
+        
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', async function() {
+            // 初始化LeanCloud
+            WuxiaData.init();
+            
+            // 获取当前用户
+            currentUser = await WuxiaData.getCurrentUser();
+            if (!currentUser) {
+                alert('请先登录！');
+                window.location.href = 'enter.html';
+                return;
+            }
+            
+            // 加载初始消息
+            loadRumors(currentLevel);
+            
+            // 绑定标签切换
+            document.querySelectorAll('.rumor-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('.rumor-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.rumor-list').forEach(l => l.classList.remove('active'));
+                    
+                    this.classList.add('active');
+                    currentLevel = parseInt(this.dataset.level);
+                    document.querySelector(`.rumor-list[data-level="${currentLevel}"]`).classList.add('active');
+                    
+                    loadRumors(currentLevel);
+                });
+            });
+            
+            // 散布按钮事件
+            document.getElementById('spreadBtn').addEventListener('click', function() {
+                // 检查是否管理员
+                if (!currentUser.isAdmin) {
+                    alert('只有管理员可以散布消息！');
+                    return;
+                }
+                openSpreadModal();
+            });
+            
+            // 模态框关闭按钮
+            document.getElementById('closeModal').addEventListener('click', closeModal);
+            document.getElementById('cancelRumor').addEventListener('click', closeModal);
+            
+            // 表单提交
+            document.getElementById('rumorForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                await submitRumor();
+            });
+        });
+        
+        // 加载消息列表
+        async function loadRumors(level) {
+            const container = document.getElementById(`rumorsLevel${level}`);
+            container.innerHTML = '<div class="loading"><i class="fas fa-spinner"></i> 加载中...</div>';
+            
+            try {
+                const rumors = await WuxiaData.getRumors(level);
+                
+                container.innerHTML = '';
+                
+                if (rumors.length === 0) {
+                    container.innerHTML = '<div class="empty-message">暂无消息</div>';
+                    return;
+                }
+                
+                rumors.forEach(rumor => {
+                    const sectInfo = WuxiaData.sects[rumor.sect] || { name: '无', color: '' };
+                    const item = document.createElement('div');
+                    item.className = `rumor-item rumor-level-${rumor.level}`;
+                    item.innerHTML = `
+                        <div class="rumor-header">
+                            <div class="rumor-title">${rumor.title}</div>
+                            <div class="rumor-meta">${new Date(rumor.createdAt).toLocaleDateString('zh-CN')}</div>
+                        </div>
+                        <div class="rumor-body">${rumor.content}</div>
+                        <div class="rumor-footer">
+                            <span>发布者：${rumor.authorName || '神秘人'}</span>
+                            <span>关联门派：${sectInfo.name}</span>
+                        </div>
+                    `;
+                    container.appendChild(item);
+                });
+                
+            } catch (error) {
+                console.error('加载消息失败:', error);
+                container.innerHTML = '<div class="empty-message">加载消息失败</div>';
+            }
+        }
+        
+        // 打开发布消息模态框
+        function openSpreadModal() {
+            // 重置表单
+            document.getElementById('rumorForm').reset();
+            document.getElementById('spreadModal').style.display = 'flex';
+        }
+        
+        // 关闭模态框
+        function closeModal() {
+            document.getElementById('spreadModal').style.display = 'none';
+        }
+        
+        // 提交消息
+        async function submitRumor() {
+            const title = document.getElementById('rumorTitle').value.trim();
+            const level = parseInt(document.getElementById('rumorLevel').value);
+            const sect = document.getElementById('rumorSect').value;
+            const content = document.getElementById('rumorContent').value.trim();
+            
+            if (!title || !content) {
+                alert('请填写完整的消息内容！');
+                return;
+            }
+            
+            const rumorData = {
+                title,
+                level,
+                sect: sect || null,
+                content,
+                authorName: currentUser.name,
+                authorPhone: currentUser.phone
+            };
+            
+            try {
+                const success = await WuxiaData.createRumor(rumorData);
+                
+                if (success) {
+                    alert('消息发布成功！');
+                    closeModal();
+                    loadRumors(currentLevel); // 刷新当前列表
+                } else {
+                    throw new Error('发布消息失败');
+                }
+            } catch (error) {
+                console.error('发布消息失败:', error);
+                alert('发布消息失败，请重试');
+            }
+        }
+    </script>
+</body>
+</html>

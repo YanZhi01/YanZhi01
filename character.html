@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>创建角色 - 武侠语C群</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', serif;
+        }
+        
+        body {
+            background: #f5f0e1 url('https://img.zcool.cn/community/01a1a55d15c8bba8012187f4b4a7a7.jpg@1280w_1l_2o_100sh.jpg') no-repeat center/cover;
+            min-height: 100vh;
+            padding: 20px;
+            color: #3e2723;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            border: 2px solid #8b4513;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #8b4513;
+            margin-bottom: 30px;
+            font-size: 2.2rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #5d4037;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #bcaaa4;
+            border-radius: 4px;
+            background: #fff8e1;
+        }
+        
+        button {
+            background: #8b4513;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            display: block;
+            margin: 20px auto;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #6d4c41;
+        }
+        
+        button:disabled {
+            background: #bcaaa4;
+            cursor: not-allowed;
+        }
+        
+        .avatar-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 3px solid #d4af37;
+            object-fit: cover;
+            margin: 10px auto;
+            display: block;
+        }
+        
+        .back-btn {
+            display: inline-block;
+            margin-top: 10px;
+            color: #8b4513;
+            text-decoration: none;
+            border-bottom: 1px dashed #8b4513;
+            transition: all 0.3s;
+        }
+        
+        .back-btn:hover {
+            color: #6d4c41;
+            border-bottom-color: #6d4c41;
+        }
+        
+        /* 门派颜色标识 */
+        .sect-color-wudang { color: #2e7d32; }
+        .sect-color-yaowang { color: #43a047; }
+        .sect-color-chongsheng { color: #fdd835; }
+        .sect-color-xueao { color: #c62828; }
+        .sect-color-guangming { color: #ef6c00; }
+        .sect-color-wandu { color: #6a1b9a; }
+        .sect-color-emei { color: #ad1457; }
+        .sect-color-tianxing { color: #1565c0; }
+        
+        /* 加载状态 */
+        .loading {
+            display: inline-block;
+            margin-left: 10px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        /* 错误提示 */
+        .error-message {
+            color: #c62828;
+            font-size: 0.9rem;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        /* 成功提示 */
+        .success-message {
+            color: #2e7d32;
+            font-size: 0.9rem;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        /* 表单验证状态 */
+        input:invalid, select:invalid {
+            border-color: #c62828;
+        }
+        
+        input:valid, select:valid {
+            border-color: #43a047;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+    <script src="//cdn.jsdelivr.net/npm/leancloud-storage@4.12.0/dist/av-min.js"></script>
+    <script src="data.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>创建江湖角色</h1>
+        
+        <form id="characterForm">
+            <div class="form-group">
+                <label for="phone">手机号</label>
+                <input type="tel" id="phone" placeholder="请输入11位手机号" required pattern="[0-9]{11}">
+                <div id="phoneError" class="error-message"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="name">角色姓名</label>
+                <input type="text" id="name" placeholder="如：叶孤城" required minlength="2" maxlength="10">
+                <div id="nameError" class="error-message"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="sect">选择门派</label>
+                <select id="sect" required>
+                    <option value="">-- 请选择门派 --</option>
+                    <option value="wudang">武当派（初始职位：带发道童）</option>
+                    <option value="yaowang">药王谷（初始职位：药童）</option>
+                    <option value="chongsheng">崇圣寺（初始职位：和尚）</option>
+                    <option value="xueao">血敖台（初始职位：刀童）</option>
+                    <option value="guangming">光明顶（初始职位：圣火童子）</option>
+                    <option value="wandu">万毒窟（初始职位：窟丁）</option>
+                    <option value="emei">峨眉派（初始职位：普通弟子）</option>
+                    <option value="tianxing">天行道（初始职位：预备役）</option>
+                </select>
+                <div id="sectError" class="error-message"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="age">年龄</label>
+                <input type="number" id="age" min="0" max="99" value="25" required>
+                <div id="ageError" class="error-message"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="avatar">角色头像</label>
+                <input type="file" id="avatar" accept="image/*">
+                <img id="avatarPreview" class="avatar-preview" 
+                     src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%238b4513'/><text x='50' y='55' font-family='Microsoft YaHei' font-size='16' fill='white' text-anchor='middle'>头像</text></svg>">
+                <div id="avatarError" class="error-message"></div>
+            </div>
+            
+            <button type="submit" id="submitBtn">
+                <span id="submitText">拜入山门</span>
+                <i id="submitSpinner" class="fas fa-spinner loading" style="display: none;"></i>
+            </button>
+            <div id="formSuccess" class="success-message"></div>
+        </form>
+        
+        <a href="index.html" class="back-btn">
+            <i class="fas fa-arrow-left"></i> 返回首页
+        </a>
+    </div>
+
+    <!-- LeanCloud SDK -->
+    <script src="//cdn.jsdelivr.net/npm/leancloud-storage@4.12.0/dist/av-min.js"></script>
+    <script src="data.js"></script>
+    
+    <script>
+        // 门派初始职位映射
+        const sectPositions = {
+            wudang: "带发道童",
+            yaowang: "药童",
+            chongsheng: "和尚",
+            xueao: "刀童",
+            guangming: "圣火童子",
+            wandu: "窟丁",
+            emei: "普通弟子",
+            tianxing: "预备役"
+        };
+
+        // 头像预览
+        document.getElementById('avatar').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                // 验证文件类型
+                if (!file.type.match('image.*')) {
+                    document.getElementById('avatarError').textContent = "请选择有效的图片文件";
+                    document.getElementById('avatarError').style.display = "block";
+                    return;
+                }
+                
+                // 验证文件大小（不超过2MB）
+                if (file.size > 2 * 1024 * 1024) {
+                    document.getElementById('avatarError').textContent = "图片大小不能超过2MB";
+                    document.getElementById('avatarError').style.display = "block";
+                    return;
+                }
+                
+                document.getElementById('avatarError').style.display = "none";
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('avatarPreview').src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // 表单提交
+        document.getElementById('characterForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const phone = document.getElementById('phone').value;
+            const name = document.getElementById('name').value.trim();
+            const sect = document.getElementById('sect').value;
+            const age = document.getElementById('age').value;
+            const avatarFile = document.getElementById('avatar').files[0];
+            const submitBtn = document.getElementById('submitBtn');
+            const submitSpinner = document.getElementById('submitSpinner');
+            const submitText = document.getElementById('submitText');
+            
+            // 重置错误信息
+            document.querySelectorAll('.error-message').forEach(el => {
+                el.style.display = 'none';
+            });
+            document.getElementById('formSuccess').style.display = 'none';
+            
+            // 验证手机号
+            if (!/^1[3-9]\d{9}$/.test(phone)) {
+                document.getElementById('phoneError').textContent = "请输入有效的11位手机号";
+                document.getElementById('phoneError').style.display = "block";
+                return;
+            }
+            
+            // 验证角色名
+            if (name.length < 1 || name.length > 10) {
+                document.getElementById('nameError').textContent = "角色名长度需在1-10个字符之间";
+                document.getElementById('nameError').style.display = "block";
+                return;
+            }
+            
+            // 验证门派
+            if (!sect) {
+                document.getElementById('sectError').textContent = "请选择门派";
+                document.getElementById('sectError').style.display = "block";
+                return;
+            }
+            
+            // 验证年龄
+            if (age < 16 || age > 99) {
+                document.getElementById('ageError').textContent = "年龄需在16-99岁之间";
+                document.getElementById('ageError').style.display = "block";
+                return;
+            }
+            
+            // 显示加载状态
+            submitBtn.disabled = true;
+            submitText.textContent = "创建中...";
+            submitSpinner.style.display = "inline-block";
+            
+            try {
+                // 检查是否已注册
+                const allCharacters = await WuxiaData.getAllCharacters();
+                if (allCharacters[phone]) {
+                    document.getElementById('phoneError').textContent = "该手机号已注册角色！";
+                    document.getElementById('phoneError').style.display = "block";
+                    return;
+                }
+                
+                // 生成角色数据
+                const position = sectPositions[sect];
+                const level = 9; // 初始等级
+                const exp = Math.floor(Math.random() * 401) + 100; // 100-500
+                const money = Math.floor(Math.random() * 201) + 100; // 100-300
+                
+                // 处理头像
+                const getAvatarData = () => {
+                    return new Promise((resolve) => {
+                        if (avatarFile) {
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                resolve(e.target.result);
+                            };
+                            reader.readAsDataURL(avatarFile);
+                        } else {
+                            resolve(document.getElementById('avatarPreview').src);
+                        }
+                    });
+                };
+                
+                const avatar = await getAvatarData();
+                
+                // 创建角色对象
+                const characterData = {
+                    name,
+                    sect,
+                    position,
+                    level,
+                    exp,
+                    money,
+                    age,
+                    avatar,
+                    lastSignDate: "",
+                    registerTime: new Date().toISOString(),
+                    isAdmin: false
+                };
+                
+                // 保存到LeanCloud
+                const saveSuccess = await WuxiaData.saveCharacter(phone, characterData);
+                
+                if (saveSuccess) {
+                    // 显示成功消息
+                    document.getElementById('formSuccess').textContent = 
+                        `角色创建成功！${name} 拜入 ${sect} 成为 ${position}`;
+                    document.getElementById('formSuccess').style.display = "block";
+                    
+                    // 重置表单
+                    document.getElementById('characterForm').reset();
+                    document.getElementById('avatarPreview').src = 
+                        'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="%238b4513"/><text x="50" y="55" font-family="Microsoft YaHei" font-size="16" fill="white" text-anchor="middle">头像</text></svg>';
+                    
+                    // 3秒后自动跳转
+                    setTimeout(() => {
+                        window.location.href = "enter.html";
+                    }, 3000);
+                } else {
+                    throw new Error("保存角色失败");
+                }
+            } catch (error) {
+                console.error("创建角色失败:", error);
+                document.getElementById('formSuccess').textContent = "角色创建失败，请重试";
+                document.getElementById('formSuccess').style.display = "block";
+            } finally {
+                // 恢复按钮状态
+                submitBtn.disabled = false;
+                submitText.textContent = "拜入山门";
+                submitSpinner.style.display = "none";
+            }
+        });
+
+        // 实时表单验证
+        document.getElementById('phone').addEventListener('input', function() {
+            if (!/^1[3-9]\d{0,9}$/.test(this.value)) {
+                document.getElementById('phoneError').textContent = "请输入有效的手机号";
+                document.getElementById('phoneError').style.display = "block";
+            } else {
+                document.getElementById('phoneError').style.display = "none";
+            }
+        });
+        
+        document.getElementById('name').addEventListener('input', function() {
+            if (this.value.length > 0 && (this.value.length < 2 || this.value.length > 10)) {
+                document.getElementById('nameError').textContent = "长度需在2-10个字符之间";
+                document.getElementById('nameError').style.display = "block";
+            } else {
+                document.getElementById('nameError').style.display = "none";
+            }
+        });
+        
+        document.getElementById('sect').addEventListener('change', function() {
+            if (!this.value) {
+                document.getElementById('sectError').textContent = "请选择门派";
+                document.getElementById('sectError').style.display = "block";
+            } else {
+                document.getElementById('sectError').style.display = "none";
+                // 添加门派颜色样式
+                document.querySelectorAll('.sect-color').forEach(el => {
+                    el.classList.remove(...Object.keys(sectPositions).map(k => `sect-color-${k}`));
+                });
+                document.getElementById('sect').classList.add(`sect-color-${this.value}`);
+            }
+        });
+        
+        document.getElementById('age').addEventListener('input', function() {
+            if (this.value < 16 || this.value > 99) {
+                document.getElementById('ageError').textContent = "年龄需在16-99岁之间";
+                document.getElementById('ageError').style.display = "block";
+            } else {
+                document.getElementById('ageError').style.display = "none";
+            }
+        });
+
+        // 页面加载时初始化LeanCloud
+        document.addEventListener('DOMContentLoaded', function() {
+            WuxiaData.init();
+        });
+    </script>
+</body>
+</html>
